@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Formulaire de contact accessible</title>
+  <style>
+    .error {
+      color: red;
+      font-size: 0.9rem;
+    }
+    .visually-hidden {
+      position: absolute;
+      left: -9999px;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>Contactez-nous</h1>
+
+    <form id="contactForm" novalidate>
+      <div>
+        <label for="prenom">Prénom :</label>
+        <input type="text" id="prenom" name="prenom" required aria-required="true" aria-describedby="prenomError" />
+        <div id="prenomError" class="error" role="alert" aria-live="assertive"></div>
+      </div>
+
+      <div>
+        <label for="nom">Nom :</label>
+        <input type="text" id="nom" name="nom" required aria-required="true" aria-describedby="nomError" />
+        <div id="nomError" class="error" role="alert" aria-live="assertive"></div>
+      </div>
+
+      <div>
+        <label for="email">Email :</label>
+        <input type="email" id="email" name="email" required aria-required="true"
+               aria-describedby="emailHelp emailError" />
+        <small id="emailHelp">Votre adresse ne sera jamais partagée.</small>
+        <div id="emailError" class="error" role="alert" aria-live="assertive"></div>
+      </div>
+
+      <div>
+        <label for="message">Message :</label>
+        <textarea id="message" name="message" rows="5" required aria-required="true" aria-describedby="messageError"></textarea>
+        <div id="messageError" class="error" role="alert" aria-live="assertive"></div>
+      </div>
+
+      <button type="submit">Envoyer</button>
+    </form>
+  </main>
+
+  <script>
+    const form = document.getElementById("contactForm");
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const fields = ["prenom", "nom", "email", "message"];
+      let isValid = true;
+
+      fields.forEach(id => {
+        const field = document.getElementById(id);
+        const error = document.getElementById(id + "Error");
+
+        error.textContent = "";
+        field.removeAttribute("aria-invalid");
+
+        if (!field.value.trim()) {
+          error.textContent = `Le champ ${id} est requis.`;
+          field.setAttribute("aria-invalid", "true");
+          isValid = false;
+        } else if (id === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value)) {
+          error.textContent = "Veuillez entrer une adresse email valide.";
+          field.setAttribute("aria-invalid", "true");
+          isValid = false;
+        }
+      });
+
+      if (isValid) {
+        alert("Formulaire envoyé !");
+        form.reset();
+      }
+    });
+  </script>
+</body>
+</html>
