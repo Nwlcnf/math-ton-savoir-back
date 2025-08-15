@@ -1,24 +1,27 @@
 version: '3.8'
 
-
 services:
   backend:
     build: .
     container_name: spring-backend
     ports:
-      - "8080:8080"  # expose le port 8080 de ton container sur le port 8080 de ta machine locale
+      - "8080:8080"
     environment:
-
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mathtonsavoir
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: example
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      # Optionnel : config ELK si logback ou logstash est configuré pour TCP/HTTP
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5001
     depends_on:
-      - db  # le backend attend que la base de données soit prête avant de démarrer
+      - db
+      - elasticsearch
+      - logstash
 
   db:
     image: postgres:13
-    container_name: postgres-db
+    container_name: postgres-db-new
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: example
@@ -26,7 +29,36 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"  # expose le port 5432 de ton container sur le port 5432 de ta machine locale
+      - "5432:5432"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.1
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
+    depends_on:
+      - elasticsearch
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.1
+    container_name: logstash
+    ports:
+      - "5001:5001" # TCP port pour recevoir logs
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+    depends_on:
+      - elasticsearch
 
 volumes:
   postgres-data:
