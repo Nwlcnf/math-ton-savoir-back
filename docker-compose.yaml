@@ -11,13 +11,14 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: example
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      # Optionnel : config ELK si logback ou logstash est configuré pour TCP/HTTP
       LOGSTASH_HOST: logstash
       LOGSTASH_PORT: 5001
     depends_on:
       - db
       - elasticsearch
       - logstash
+    networks:
+      - elk
 
   db:
     image: postgres:13
@@ -30,15 +31,21 @@ services:
       - postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - elk
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
     container_name: elasticsearch
     environment:
       - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g   # ✅ Augmenter la mémoire
+      - xpack.security.enabled=false   # ⚡ désactive sécurité
+
     ports:
       - "9200:9200"
+    networks:
+      - elk
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.11.1
@@ -46,20 +53,29 @@ services:
     ports:
       - "5601:5601"
     environment:
-      ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - NODE_OPTIONS=--max-old-space-size=2048
     depends_on:
       - elasticsearch
+    networks:
+      - elk
 
   logstash:
     image: docker.elastic.co/logstash/logstash:8.11.1
     container_name: logstash
     ports:
-      - "5001:5001" # TCP port pour recevoir logs
+      - "5001:5001"
     volumes:
       - ./logstash/pipeline:/usr/share/logstash/pipeline
     depends_on:
       - elasticsearch
+    networks:
+      - elk
 
 volumes:
   postgres-data:
     driver: local
+
+networks:
+  elk:
+    driver: bridge
