@@ -30,10 +30,11 @@ jobs:
 
       # 4️⃣ Upload le rapport Jacoco en artifact
       - name: Upload Jacoco report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
           path: target/site/jacoco
+
 
       # 5️⃣ Login Docker Hub
       - name: Log in to Docker Hub
