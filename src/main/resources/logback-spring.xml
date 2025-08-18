@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true">
+
+    <!-- ============================= -->
+    <!-- Variables d'environnement -->
+    <!-- ============================= -->
+    <property name="LOGSTASH_HOST" value="logstash"/>
+    <property name="LOGSTASH_PORT" value="5001"/>
+
+    <!-- ============================= -->
+    <!-- Console appender (local) -->
+    <!-- ============================= -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ============================= -->
+    <!-- Logstash TCP appender -->
+    <!-- ============================= -->
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>logstash:5001</destination>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- inclure timestamp, niveau, logger, message et MDC si besoin -->
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <timeZone>UTC</timeZone>
+        </encoder>
+        <!-- reconnect automatique si Logstash est down -->
+        <reconnectionDelay>5000</reconnectionDelay>
+    </appender>
+
+    <!-- ============================= -->
+    <!-- Logger racine -->
+    <!-- ============================= -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LOGSTASH"/>
+    </root>
+
+    <!-- ============================= -->
+    <!-- Log spécifiques (optionnel) -->
+    <!-- ============================= -->
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="com.mathtonsavoir.backend" level="DEBUG"/>
+</configuration>

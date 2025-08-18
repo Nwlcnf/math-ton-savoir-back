@@ -1,20 +1,18 @@
-# syntax=docker/dockerfile:1
-
 FROM eclipse-temurin:17-jdk-jammy
 
 WORKDIR /app
+
+# Copier le pom et les sources
+COPY pom.xml mvnw ./
 COPY .mvn/ .mvn
-COPY mvnw pom.xml ./
+COPY src ./src
 
-
- # Converting the mvnw line endings during build (if you don’t change line endings of the mvnw file)
+# Installer dos2unix si besoin
 RUN apt-get update && apt-get install -y dos2unix
 RUN dos2unix ./mvnw
 
-RUN ./mvnw dependency:resolve
+# Compiler le projet et créer le jar
+RUN ./mvnw clean package -DskipTests
 
-ENV SPRING_PROFILES_ACTIVE=docker
-
-COPY src ./src
-
-ENTRYPOINT ["./mvnw", "spring-boot:run"]
+# Lancer le jar directement
+ENTRYPOINT ["java","-jar","target/backend-0.0.1-SNAPSHOT.jar"]

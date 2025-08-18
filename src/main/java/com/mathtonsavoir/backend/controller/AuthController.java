@@ -2,6 +2,7 @@ package com.mathtonsavoir.backend.controller;
 
 import com.mathtonsavoir.backend.auth.*;
 import com.mathtonsavoir.backend.dto.UtilisateurDTO;
+import com.mathtonsavoir.backend.exception.ResourceNotFoundException;
 import com.mathtonsavoir.backend.model.*;
 import com.mathtonsavoir.backend.model.enums.Classe;
 import com.mathtonsavoir.backend.model.enums.Role;
@@ -63,7 +64,7 @@ public class AuthController {
         }
 
         Utilisateur utilisateur = utilisateurRepository.findByEmail(request.email())
-                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
 
         String token = jwtService.generateToken(new SecurityUserDetails(utilisateur));
         return ResponseEntity.ok(new AuthResponse(token));
